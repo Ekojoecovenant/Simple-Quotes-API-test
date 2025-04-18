@@ -1,10 +1,14 @@
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 const express = require("express");
 const app = express();
 const port = 2000;
 
 const dataFile = path.join(__dirname, "quotes.json");
+
+// This enables CORS for all routes and origins
+app.use(cors());
 
 // Body parser middleware
 app.use(express.json());

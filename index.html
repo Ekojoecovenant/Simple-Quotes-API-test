@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuoteVault Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        button,
+        input[type="text"] {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 4px;
+            min-height: 150px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        form input,
+        form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        form button {
+            align-self: flex-start;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>QuoteVault</h1>
+
+    <div id="controls">
+        <button id="btn-all">All Quotes</button>
+        <button id="btn-random">Random Quote</button>
+        <input type="text" id="search-input" placeholder="Search keyword">
+        <button id="btn-search">Search</button>
+    </div>
+
+    <div id="output">Click a button to load quotes...</div>
+
+    <form id="add-quote-form">
+        <h2>Add a New Quote</h2>
+        <input type="text" id="author" placeholder="Author" required>
+        <textarea id="text" rows="3" placeholder="Quote text" required></textarea>
+        <button type="submit">Add Quote</button>
+    </form>
+
+    <script>
+        const apiBase = 'https://simple-quotes-api-test.onrender.com';
+        const output = document.getElementById('output');
+
+        document.getElementById('btn-all').onclick = async () => {
+            const res = await fetch(`${apiBase}/quotes`);
+            const data = await res.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        };
+
+        document.getElementById('btn-random').onclick = async () => {
+            const res = await fetch(`${apiBase}/quotes/random`);
+            const data = await res.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        };
+
+        document.getElementById('btn-search').onclick = async () => {
+            const q = document.getElementById('search-input').value.trim();
+            if (!q) return alert('Enter a keyword');
+            const res = await fetch(`${apiBase}/quotes/search?q=${encodeURIComponent(q)}`);
+            if (res.status === 404) {
+                output.textContent = 'No matching quotes found.';
+            } else {
+                const data = await res.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            }
+        };
+
+        document.getElementById('add-quote-form').onsubmit = async e => {
+            e.preventDefault();
+            const author = document.getElementById('author').value.trim();
+            const text = document.getElementById('text').value.trim();
+            if (!author || !text) return alert('Both fields are required');
+
+            const res = await fetch(`${apiBase}/quotes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author, text })
+            });
+
+            if (res.status === 201) {
+                alert('Quote added!');
+                document.getElementById('author').value = '';
+                document.getElementById('text').value = '';
+            } else {
+                const err = await res.json();
+                alert('Error: ' + err.message);
+            }
+        };
+    </script>
+</body>
+
+</html>
